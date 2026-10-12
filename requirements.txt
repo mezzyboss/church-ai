@@ -1,1 +1,18 @@
+# Browser automation for interacting with web pages.
 playwright==1.63.0
+# Data validation and typed models.
+pydantic
+# Load configuration from environment files.
+python-dotenv
+# Build stateful, multi-step AI workflows.
+langgraph
+# Core abstractions for language-model applications.
+langchain
+# Community-maintained integrations for LangChain.
+langchain-community
+# Connect to locally hosted Ollama models.
+ollama
+# Improve formatting of command-line output.
+rich
+# Run the project's automated tests.
+pytest

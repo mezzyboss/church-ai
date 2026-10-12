@@ -1,0 +1,7 @@
+pydantic>=2.0
+python-dotenv>=1.0
+playwright>=1.40
+langgraph>=0.2
+pytest>=8.0
+# ollama client is optional until local LLM integration lands
+# ollama>=0.3
