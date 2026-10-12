@@ -58,8 +58,8 @@ python -m pip install -r requirements.txt
 
 In Edge, open `edge://version` and find **Profile path**. Use its parent
 directory as the user data directory (for example, `.../User Data`, not
-`.../User Data/Default`). Close Edge windows using that profile. The profile
-must already be signed in to StreamYard.
+`.../User Data/Default`). Close Edge windows using that profile. Ideally the profile
+is already signed in to StreamYard (otherwise see the Google fallback below).
 
 Run the PoC by passing the user data directory:
 
@@ -72,6 +72,14 @@ Alternatively, set `STREAMYARD_EDGE_USER_DATA_DIR` and run
 StreamYard, waits for Enter (or Ctrl+C), and closes its Edge context. The
 profile contains browser data: do not copy it into or commit it to this
 repository.
+
+If the Edge session is not signed in to StreamYard, the PoC falls back to
+"Continue with Google" sign-in when `STREAMYARD_GOOGLE_EMAIL` and
+`STREAMYARD_GOOGLE_PASSWORD` are set in the environment. Never put these in a
+committed file. Google 2FA/CAPTCHA prompts cannot be automated; complete them
+manually in the open window (up to 2 minutes). Without credentials, sign in
+manually. The login-state detection is heuristic and unverified against the
+live site.
 
 ### Agent application scaffold
 
@@ -105,6 +113,9 @@ settings. No lint or build configuration is present in the repository.
 
 - The standalone PoC is manual and only navigates to StreamYard; it does not
   create, schedule, or list broadcasts.
+- `StreamYardTool.open_dashboard()` (with Google fallback) is mock-tested only;
+  other StreamYard operations raise `NotImplementedError`. CI runs pytest
+  (`.github/workflows/tests.yml`).
 - The agent entry point does not invoke its workflow. Workflow nodes and
   StreamYard operations raise `NotImplementedError`.
 - ProPresenter, Ollama-backed planning, service configuration files, retries,

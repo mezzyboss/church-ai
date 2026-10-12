@@ -25,7 +25,7 @@ There are two separate Python entry points:
 
 | Component | Status | Responsibility |
 | --- | --- | --- |
-| `scripts/streamyard_poc.py` | Implemented | Parse `--user-data-dir` or `STREAMYARD_EDGE_USER_DATA_DIR`, validate the directory, launch Edge through Playwright, navigate to the fixed StreamYard URL, wait for user input, and close the context. |
+| `scripts/streamyard_poc.py` | Implemented | Parse `--user-data-dir` or `STREAMYARD_EDGE_USER_DATA_DIR`, validate the directory, launch Edge through Playwright, navigate to the fixed StreamYard URL, fall back to Google sign-in if unauthenticated and credentials are in the environment, wait for user input, and close the context. |
 | `church-service-agent/main.py` | Implemented | Load settings, configure logging, log startup, and exit. Workflow execution is a TODO. |
 | `church-service-agent/settings.py` | Implemented | Load environment variables and, when `python-dotenv` is installed, a package-local `.env` file into a frozen `Settings` dataclass. |
 | `church-service-agent/logging_config.py` | Implemented | Configure standard-library console and rotating-file logging. |

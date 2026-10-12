@@ -7,6 +7,70 @@ from pathlib import Path
 
 logger = logging.getLogger("streamyard_poc")
 
+STREAMYARD_URL = "https://streamyard.com/"
+GOOGLE_EMAIL_ENV = "STREAMYARD_GOOGLE_EMAIL"
+GOOGLE_PASSWORD_ENV = "STREAMYARD_GOOGLE_PASSWORD"
+LOGIN_TIMEOUT_MS = 120_000
+
+
+def is_login_page(url: str) -> bool:
+    """Return True if the URL looks like a StreamYard sign-in page."""
+    lowered = url.lower()
+    return any(marker in lowered for marker in ("/login", "/signin", "/sign-in"))
+
+
+def is_authenticated(page) -> bool:
+    """Heuristically decide whether the StreamYard session is signed in.
+
+    TODO: replace with a check for a stable dashboard element once verified
+    against the live site.
+    """
+    if is_login_page(page.url):
+        return False
+    return page.get_by_text("Continue with Google").count() == 0
+
+
+def login_with_google(page, email: str, password: str) -> bool:
+    """Sign in to StreamYard via Google using credentials from the environment.
+
+    Returns True when the session appears authenticated afterwards. Google may
+    request 2FA or a CAPTCHA, which cannot be automated: the function waits up
+    to LOGIN_TIMEOUT_MS for those to be completed manually in the open window.
+    Credentials are never logged or stored.
+    """
+    logger.info("Edge session is not signed in; attempting Google sign-in.")
+    page.get_by_text("Continue with Google").first.click()
+    page.wait_for_url("**://accounts.google.com/**", timeout=LOGIN_TIMEOUT_MS)
+    page.get_by_label("Email or phone").fill(email)
+    page.get_by_role("button", name="Next").click()
+    page.locator('input[type="password"]').fill(password, timeout=LOGIN_TIMEOUT_MS)
+    page.get_by_role("button", name="Next").click()
+    logger.info("Credentials submitted; complete any Google verification manually.")
+    page.wait_for_url("**://streamyard.com/**", timeout=LOGIN_TIMEOUT_MS)
+    page.wait_for_load_state("domcontentloaded")
+    return is_authenticated(page)
+
+
+def ensure_logged_in(page) -> bool:
+    """Use the existing Edge session if signed in, else fall back to Google."""
+    if is_authenticated(page):
+        logger.info("Existing Edge session is authenticated.")
+        return True
+    email = os.environ.get(GOOGLE_EMAIL_ENV)
+    password = os.environ.get(GOOGLE_PASSWORD_ENV)
+    if not email or not password:
+        logger.warning(
+            "Not signed in and %s / %s are not set; sign in manually.",
+            GOOGLE_EMAIL_ENV,
+            GOOGLE_PASSWORD_ENV,
+        )
+        return False
+    try:
+        return login_with_google(page, email, password)
+    except Exception:
+        logger.exception("Google sign-in failed; sign in manually in the window.")
+        return False
+
 
 def main():
     parser = argparse.ArgumentParser(
@@ -58,7 +122,7 @@ def main():
                 page = context.pages[0] if context.pages else context.new_page()
                 logger.info("Opening StreamYard.")
                 response = page.goto(
-                    "https://streamyard.com/",
+                    STREAMYARD_URL,
                     wait_until="domcontentloaded",
                     timeout=60_000,
                 )
@@ -68,6 +132,8 @@ def main():
                     )
 
                 logger.info("StreamYard opened: %s", page.url)
+                if not ensure_logged_in(page):
+                    logger.warning("StreamYard session is not authenticated.")
                 logger.info("Current page title: %s", page.title())
                 input("StreamYard is open. Press Enter to close Edge (or Ctrl+C). ")
                 logger.info("Close requested.")
