@@ -40,8 +40,10 @@ the main application flow.
 ## Stubs and TODOs
 
 - `ServiceAgent.plan()`, `setup_stream()`, and `setup_slides()` are unimplemented.
-- `StreamYardTool.open_dashboard()`, `create_stream()`, and `list_streams()` are
-  unimplemented.
+- `StreamYardTool.create_stream()` and `list_streams()` are unimplemented.
+  `open_dashboard()` is implemented (navigate, detect login, Google fallback via
+  `STREAMYARD_GOOGLE_EMAIL`/`STREAMYARD_GOOGLE_PASSWORD`, raising
+  `StreamYardAuthError`), tested with mocks only and not yet run live.
 - `main.py` has a TODO to load an event from `configs/`, build the workflow, and
   run it.
 - Workflow conditional edges, retries, and human-in-the-loop checkpoints are
@@ -93,10 +95,10 @@ There are no tests for:
 
 1. Verify the PoC's Google fallback manually against live StreamYard and
    adjust selectors/detection.
-2. Move the login logic into `StreamYardTool` (browser automation belongs in
-   tools) and share it with the PoC.
+2. (Login logic now lives in `StreamYardTool.open_dashboard()`; make the PoC
+   reuse it instead of its own copy, and wire it into the agent flow.)
 3. Reconcile the two requirements files.
-4. Add CI running pytest.
+4. (Done: `.github/workflows/tests.yml` runs pytest; confirm it passes.)
 5. Add sample service config files (Phase 2).
 6. Implement and test `StreamYardTool.open_dashboard()` using the existing browser
 context abstraction, including a clear check for an authenticated dashboard.

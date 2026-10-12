@@ -113,6 +113,9 @@ settings. No lint or build configuration is present in the repository.
 
 - The standalone PoC is manual and only navigates to StreamYard; it does not
   create, schedule, or list broadcasts.
+- `StreamYardTool.open_dashboard()` (with Google fallback) is mock-tested only;
+  other StreamYard operations raise `NotImplementedError`. CI runs pytest
+  (`.github/workflows/tests.yml`).
 - The agent entry point does not invoke its workflow. Workflow nodes and
   StreamYard operations raise `NotImplementedError`.
 - ProPresenter, Ollama-backed planning, service configuration files, retries,

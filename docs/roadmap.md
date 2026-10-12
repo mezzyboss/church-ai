@@ -12,8 +12,9 @@ that the overall capabilities already work.
   Edge using an existing profile and leaves the page available for manual use.
 - **Implemented (PoC only, unverified live):** Google sign-in fallback when
   the Edge session is unauthenticated, using environment credentials.
-- **Planned:** Move login handling into `StreamYardTool`, then implement and
-  test dashboard navigation and login-state
+- **Implemented (mock-tested, unverified live):** `StreamYardTool.open_dashboard()`
+  with login detection and Google fallback.
+- **Planned:** Verify it live, then implement and test navigation and login-state
   detection in `StreamYardTool`.
 - **Planned:** Implement broadcast creation and listing with explicit error
   handling, browser cleanup, and focused tests.
