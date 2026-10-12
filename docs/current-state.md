@@ -10,6 +10,12 @@ the main application flow.
   command-line argument or through `STREAMYARD_EDGE_USER_DATA_DIR`. It launches
   a visible Edge persistent context, opens `https://streamyard.com/`, and waits
   for user input before closing.
+- The PoC checks whether the session is authenticated (heuristic: not on a
+  login URL and no "Continue with Google" button). If not, and
+  `STREAMYARD_GOOGLE_EMAIL`/`STREAMYARD_GOOGLE_PASSWORD` are set, it attempts
+  Google sign-in; otherwise it warns. Unit tests mock Playwright; the flow has
+  not been verified against live StreamYard/Google, which may require manual
+  2FA/CAPTCHA.
 - `church-service-agent/settings.py` builds a `Settings` object from
   environment variables and optionally a package-local `.env` file.
 - `church-service-agent/logging_config.py` configures console and rotating-file
@@ -56,8 +62,7 @@ the main application flow.
   includes pytest, and marks Ollama as optional and commented out. There is no
   packaging or environment-management configuration to reconcile them.
 - The PoC needs an existing Edge profile, and Edge must not already be using
-  that profile. It does not verify whether the user is signed in beyond
-  navigating and reporting the resulting page.
+  that profile. Its signed-in detection is heuristic.
 - The agent's StreamYard URL and browser profile settings are not used by the
   standalone PoC, which uses its own URL and profile input.
 - The repository currently tracks a compiled Python bytecode file at
@@ -77,16 +82,24 @@ There are no tests for:
 ## Missing configuration
 
 - No actual service-event YAML/JSON templates or input data are present.
-- The standalone PoC's `STREAMYARD_EDGE_USER_DATA_DIR` is not listed in the
+- The standalone PoC's `STREAMYARD_EDGE_USER_DATA_DIR` and the `STREAMYARD_GOOGLE_*` variables are not listed in the
   package `.env.example`; it is documented at the root README instead.
 - There is no shared configuration interface between the PoC and agent
   application.
 - There is no formatter, linter, build, or CI/test workflow configuration in
   the inspected repository.
 
-## Recommended next task
+## Recommended next steps
 
-Implement and test `StreamYardTool.open_dashboard()` using the existing browser
+1. Verify the PoC's Google fallback manually against live StreamYard and
+   adjust selectors/detection.
+2. Move the login logic into `StreamYardTool` (browser automation belongs in
+   tools) and share it with the PoC.
+3. Remove the tracked `.pyc`, add it to `.gitignore`, and reconcile the two
+   requirements files.
+4. Add CI running pytest.
+5. Add sample service config files (Phase 2).
+6. Implement and test `StreamYardTool.open_dashboard()` using the existing browser
 context abstraction, including a clear check for an authenticated dashboard.
 Then connect that operation to a runnable agent flow in a follow-up change.
 This establishes a narrow, testable integration step before attempting

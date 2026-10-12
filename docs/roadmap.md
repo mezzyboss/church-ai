@@ -10,7 +10,10 @@ that the overall capabilities already work.
 
 - **Implemented:** A standalone Playwright PoC opens StreamYard in Microsoft
   Edge using an existing profile and leaves the page available for manual use.
-- **Planned:** Implement and test dashboard navigation and login-state
+- **Implemented (PoC only, unverified live):** Google sign-in fallback when
+  the Edge session is unauthenticated, using environment credentials.
+- **Planned:** Move login handling into `StreamYardTool`, then implement and
+  test dashboard navigation and login-state
   detection in `StreamYardTool`.
 - **Planned:** Implement broadcast creation and listing with explicit error
   handling, browser cleanup, and focused tests.
