@@ -43,50 +43,56 @@ def main():
         )
         return 2
 
-    context = None
     try:
         with sync_playwright() as playwright:
-            logger.info("Launching Microsoft Edge with the existing profile.")
-            context = playwright.chromium.launch_persistent_context(
-                user_data_dir=str(profile_dir),
-                channel="msedge",
-                headless=False,
-            )
-            logger.info("Microsoft Edge launched.")
-
-            page = context.pages[0] if context.pages else context.new_page()
-            logger.info("Opening StreamYard.")
-            response = page.goto(
-                "https://streamyard.com/",
-                wait_until="domcontentloaded",
-                timeout=60_000,
-            )
-            if response and response.status >= 400:
-                raise RuntimeError(
-                    f"StreamYard returned HTTP {response.status}."
+            context = None
+            try:
+                logger.info("Launching Microsoft Edge with the existing profile.")
+                context = playwright.chromium.launch_persistent_context(
+                    user_data_dir=str(profile_dir),
+                    channel="msedge",
+                    headless=False,
                 )
+                logger.info("Microsoft Edge launched.")
 
-            logger.info("StreamYard opened: %s", page.url)
-            logger.info("Current page title: %s", page.title())
-            input("StreamYard is open. Press Enter to close Edge (or Ctrl+C). ")
-            logger.info("Close requested.")
-    except KeyboardInterrupt:
-        logger.info("Interrupted; closing Edge.")
-    except EOFError:
-        logger.info("Input closed; closing Edge.")
+                page = context.pages[0] if context.pages else context.new_page()
+                logger.info("Opening StreamYard.")
+                response = page.goto(
+                    "https://streamyard.com/",
+                    wait_until="domcontentloaded",
+                    timeout=60_000,
+                )
+                if response and response.status >= 400:
+                    raise RuntimeError(
+                        f"StreamYard returned HTTP {response.status}."
+                    )
+
+                logger.info("StreamYard opened: %s", page.url)
+                logger.info("Current page title: %s", page.title())
+                input("StreamYard is open. Press Enter to close Edge (or Ctrl+C). ")
+                logger.info("Close requested.")
+            except KeyboardInterrupt:
+                logger.info("Interrupted; closing Edge.")
+            except EOFError:
+                logger.info("Input closed; closing Edge.")
+            except Exception:
+                logger.exception(
+                    "Could not open StreamYard. Confirm Edge is installed and that no "
+                    "other Edge process is using this profile."
+                )
+                return 1
+            finally:
+                if context is not None:
+                    try:
+                        context.close()
+                        logger.info("Edge closed.")
+                    except Exception:
+                        logger.exception("Could not close the Edge context cleanly.")
     except Exception:
         logger.exception(
-            "Could not open StreamYard. Confirm Edge is installed and that no "
-            "other Edge process is using this profile."
+            "Could not start Playwright. Confirm the installation is complete."
         )
         return 1
-    finally:
-        if context is not None:
-            try:
-                context.close()
-                logger.info("Edge closed.")
-            except Exception:
-                logger.exception("Could not close the Edge context cleanly.")
 
     return 0
 
