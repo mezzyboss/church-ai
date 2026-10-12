@@ -1,5 +1,5 @@
 # Browser automation for interacting with web pages.
-playwright
+playwright==1.63.0
 # Data validation and typed models.
 pydantic
 # Load configuration from environment files.
