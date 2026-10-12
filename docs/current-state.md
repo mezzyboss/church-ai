@@ -65,8 +65,8 @@ the main application flow.
   that profile. Its signed-in detection is heuristic.
 - The agent's StreamYard URL and browser profile settings are not used by the
   standalone PoC, which uses its own URL and profile input.
-- The repository currently tracks a compiled Python bytecode file at
-  `scripts/__pycache__/streamyard_poc.cpython-312.pyc`.
+- A root `.gitignore` now excludes bytecode and `.env`; the previously tracked
+  `.pyc` was untracked.
 
 ## Missing tests
 
@@ -95,8 +95,7 @@ There are no tests for:
    adjust selectors/detection.
 2. Move the login logic into `StreamYardTool` (browser automation belongs in
    tools) and share it with the PoC.
-3. Remove the tracked `.pyc`, add it to `.gitignore`, and reconcile the two
-   requirements files.
+3. Reconcile the two requirements files.
 4. Add CI running pytest.
 5. Add sample service config files (Phase 2).
 6. Implement and test `StreamYardTool.open_dashboard()` using the existing browser
