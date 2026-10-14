@@ -61,6 +61,41 @@ directory as the user data directory (for example, `.../User Data`, not
 `.../User Data/Default`). Close Edge windows using that profile. Ideally the profile
 is already signed in to StreamYard (otherwise see the Google fallback below).
 
+### Windows 11 smoke test (read-only)
+
+Needs Python 3.12 and Microsoft Edge. In PowerShell:
+
+```powershell
+git clone https://github.com/mezzyboss/church-ai.git
+cd church-ai
+python -m venv .venv
+.\.venv\Scripts\Activate.ps1
+python -m pip install -r requirements-smoke.txt
+python scripts\streamyard_poc.py --smoke-test
+```
+
+It launches Edge with a temporary profile, opens StreamYard, verifies the page
+loads, logs the result (console and `streamyard_poc.log`), and exits with code
+0 on success. It does not sign in or create/modify any stream. Check with
+`echo $LASTEXITCODE`. Add `--headless` for an unattended run. If script
+activation is blocked: `Set-ExecutionPolicy -Scope Process Bypass`.
+
+### Windows 11 login setup and check
+
+Use a dedicated automation profile (not your everyday Edge profile; never
+commit it):
+
+```powershell
+# One time: sign in by hand (2FA/CAPTCHA included), then press Enter
+python scripts\streamyard_poc.py --login-setup --user-data-dir C:\church-ai\edge-profile
+# Read-only check; logs AUTHENTICATED / NOT AUTHENTICATED (exit 0 / 3)
+python scripts\streamyard_poc.py --login-check --user-data-dir C:\church-ai\edge-profile
+```
+
+Close other Edge windows using that profile first. The signed-in detection is
+still a heuristic; the logged URL and title will be used to replace it with a
+stable dashboard element (TODO).
+
 Run the PoC by passing the user data directory:
 
 ```sh

@@ -1,0 +1,2 @@
+# Minimal dependencies for the StreamYard smoke test (e.g. Windows 11 VM).
+playwright==1.63.0
