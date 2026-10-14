@@ -53,3 +53,23 @@ def test_google_failure_returns_false(monkeypatch):
 def test_smoke_test_without_playwright(monkeypatch):
     monkeypatch.setitem(sys.modules, "playwright.sync_api", None)
     assert poc.smoke_test() == 2
+
+
+def test_login_modes_without_playwright(monkeypatch, tmp_path):
+    monkeypatch.setitem(sys.modules, "playwright", None)
+    assert poc.login_check(tmp_path) == 2
+    assert poc.login_setup(tmp_path) == 2
+
+
+def test_login_check_reports_status(monkeypatch, tmp_path):
+    monkeypatch.setattr(poc, "_open_streamyard", lambda d, h, a: a(_page("https://streamyard.com/x")))
+    assert poc.login_check(tmp_path) == 0
+    monkeypatch.setattr(poc, "_open_streamyard", lambda d, h, a: a(_page("https://streamyard.com/login")))
+    assert poc.login_check(tmp_path) == 3
+
+
+def test_login_check_error(monkeypatch, tmp_path):
+    def boom(*a):
+        raise RuntimeError("x")
+    monkeypatch.setattr(poc, "_open_streamyard", boom)
+    assert poc.login_check(tmp_path) == 1

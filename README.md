@@ -80,6 +80,22 @@ loads, logs the result (console and `streamyard_poc.log`), and exits with code
 `echo $LASTEXITCODE`. Add `--headless` for an unattended run. If script
 activation is blocked: `Set-ExecutionPolicy -Scope Process Bypass`.
 
+### Windows 11 login setup and check
+
+Use a dedicated automation profile (not your everyday Edge profile; never
+commit it):
+
+```powershell
+# One time: sign in by hand (2FA/CAPTCHA included), then press Enter
+python scripts\streamyard_poc.py --login-setup --user-data-dir C:\church-ai\edge-profile
+# Read-only check; logs AUTHENTICATED / NOT AUTHENTICATED (exit 0 / 3)
+python scripts\streamyard_poc.py --login-check --user-data-dir C:\church-ai\edge-profile
+```
+
+Close other Edge windows using that profile first. The signed-in detection is
+still a heuristic; the logged URL and title will be used to replace it with a
+stable dashboard element (TODO).
+
 Run the PoC by passing the user data directory:
 
 ```sh
