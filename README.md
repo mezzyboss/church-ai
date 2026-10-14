@@ -61,6 +61,25 @@ directory as the user data directory (for example, `.../User Data`, not
 `.../User Data/Default`). Close Edge windows using that profile. Ideally the profile
 is already signed in to StreamYard (otherwise see the Google fallback below).
 
+### Windows 11 smoke test (read-only)
+
+Needs Python 3.12 and Microsoft Edge. In PowerShell:
+
+```powershell
+git clone https://github.com/mezzyboss/church-ai.git
+cd church-ai
+python -m venv .venv
+.\.venv\Scripts\Activate.ps1
+python -m pip install -r requirements-smoke.txt
+python scripts\streamyard_poc.py --smoke-test
+```
+
+It launches Edge with a temporary profile, opens StreamYard, verifies the page
+loads, logs the result (console and `streamyard_poc.log`), and exits with code
+0 on success. It does not sign in or create/modify any stream. Check with
+`echo $LASTEXITCODE`. Add `--headless` for an unattended run. If script
+activation is blocked: `Set-ExecutionPolicy -Scope Process Bypass`.
+
 Run the PoC by passing the user data directory:
 
 ```sh

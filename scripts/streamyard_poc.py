@@ -2,6 +2,7 @@ import argparse
 import logging
 import os
 import sys
+import tempfile
 from pathlib import Path
 
 
@@ -72,6 +73,62 @@ def ensure_logged_in(page) -> bool:
         return False
 
 
+def smoke_test(timeout_ms: int = 60_000, headless: bool = False) -> int:
+    """Read-only check: launch Edge, open StreamYard, verify it loads, log it.
+
+    Uses a throwaway temporary profile (no existing profile, no sign-in) and
+    never creates or modifies a stream. Returns 0 on success, 1 on failure,
+    2 if Playwright is missing.
+    """
+    try:
+        from playwright.sync_api import sync_playwright
+    except ModuleNotFoundError:
+        logger.error(
+            "Playwright is not installed. Install dependencies with "
+            "'python -m pip install -r requirements-smoke.txt'."
+        )
+        return 2
+
+    logger.info("SMOKE TEST: read-only; no stream will be created or modified.")
+    try:
+        with tempfile.TemporaryDirectory(prefix="streamyard-smoke-") as tmp:
+            with sync_playwright() as playwright:
+                context = playwright.chromium.launch_persistent_context(
+                    user_data_dir=tmp,
+                    channel="msedge",
+                    headless=headless,
+                )
+                try:
+                    logger.info("Microsoft Edge launched.")
+                    page = context.pages[0] if context.pages else context.new_page()
+                    response = page.goto(
+                        STREAMYARD_URL,
+                        wait_until="domcontentloaded",
+                        timeout=timeout_ms,
+                    )
+                    status = response.status if response else None
+                    if status is not None and status >= 400:
+                        raise RuntimeError(f"StreamYard returned HTTP {status}.")
+                    title = page.title()
+                    if "streamyard" not in (page.url + " " + title).lower():
+                        raise RuntimeError(
+                            f"Unexpected page: url={page.url!r} title={title!r}"
+                        )
+                    logger.info(
+                        "SMOKE TEST PASSED: url=%s title=%r http_status=%s",
+                        page.url,
+                        title,
+                        status,
+                    )
+                finally:
+                    context.close()
+                    logger.info("Edge closed.")
+    except Exception:
+        logger.exception("SMOKE TEST FAILED.")
+        return 1
+    return 0
+
+
 def main():
     parser = argparse.ArgumentParser(
         description="Open StreamYard in Microsoft Edge using an existing Edge profile."
@@ -81,7 +138,21 @@ def main():
         help="Path to the Edge user data directory; defaults to "
         "STREAMYARD_EDGE_USER_DATA_DIR.",
     )
+    parser.add_argument(
+        "--smoke-test",
+        action="store_true",
+        help="Safe dry run: launch Edge with a temporary profile, open "
+        "StreamYard, verify it loads, log, and exit. No sign-in, no changes.",
+    )
+    parser.add_argument(
+        "--headless",
+        action="store_true",
+        help="With --smoke-test, run Edge without a visible window.",
+    )
     args = parser.parse_args()
+
+    if args.smoke_test:
+        return smoke_test(headless=args.headless)
 
     user_data_dir = args.user_data_dir or os.environ.get(
         "STREAMYARD_EDGE_USER_DATA_DIR"
@@ -167,6 +238,9 @@ if __name__ == "__main__":
     logging.basicConfig(
         level=logging.INFO,
         format="%(asctime)s %(levelname)s %(message)s",
-        stream=sys.stdout,
+        handlers=[
+            logging.StreamHandler(sys.stdout),
+            logging.FileHandler("streamyard_poc.log", encoding="utf-8"),
+        ],
     )
     sys.exit(main())

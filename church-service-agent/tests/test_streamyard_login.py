@@ -48,3 +48,8 @@ def test_google_failure_returns_false(monkeypatch):
     monkeypatch.setenv(poc.GOOGLE_PASSWORD_ENV, "pw")
     monkeypatch.setattr(poc, "login_with_google", MagicMock(side_effect=RuntimeError))
     assert not poc.ensure_logged_in(_page("https://streamyard.com/login"))
+
+
+def test_smoke_test_without_playwright(monkeypatch):
+    monkeypatch.setitem(sys.modules, "playwright.sync_api", None)
+    assert poc.smoke_test() == 2
